@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Axent</title>
+<style>
+:root{
+  --bg:#f3f3f1; --tx:#161616; --mut:#6b6b6b; --dim:#9a9a98; --line:#d6d6d3; --field:#fbfbfa; --chip:#e9e9e6;
+  --btn:#b9b9b7; --btn-on:#161616; --btn-ink:#fff; --err:#c62828; --ok:#1b7f3b;
+  --mist:radial-gradient(60% 50% at 20% 30%,rgba(0,0,0,.04),transparent 70%),radial-gradient(60% 50% at 85% 40%,rgba(0,0,0,.05),transparent 70%);
+  --font:Inter,"Segoe UI Variable Text","Segoe UI",system-ui,-apple-system,sans-serif;
+}
+:root[data-theme=dark]{
+  --bg:#0c0d10; --tx:#f1f3f6; --mut:#9096a1; --dim:#5d626c; --line:#262932; --field:#14161b; --chip:#1a1d23;
+  --btn:#2a2d35; --btn-on:#a7d0f2; --btn-ink:#07121d; --err:#ff7b7f; --ok:#7bd88f;
+  --mist:radial-gradient(60% 50% at 20% 30%,rgba(120,160,220,.07),transparent 70%),radial-gradient(60% 50% at 85% 40%,rgba(120,160,220,.06),transparent 70%);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100vh;background:var(--mist),var(--bg);color:var(--tx);font:14px/1.4 var(--font);display:flex;flex-direction:column;align-items:center}
+button,input{font:inherit;color:inherit;border:0;background:none;outline:0}
+button{cursor:pointer}
+svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none}
+
+header{width:min(760px,92vw);display:flex;align-items:center;justify-content:space-between;padding:24px 0;height:82px}
+.logo{display:flex;align-items:center;gap:8px;font-weight:650;font-size:15px;text-decoration:none;color:inherit}
+nav{display:flex;gap:6px}
+nav a{display:flex;gap:7px;align-items:center;padding:8px 10px;border-radius:10px;color:var(--mut);text-decoration:none;font-weight:500}
+nav a:hover{color:var(--tx)}
+.tools{display:flex;gap:10px;align-items:center}
+.theme{display:flex;background:var(--chip);border-radius:999px;padding:3px}
+.theme button{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;color:var(--dim)}
+.theme button.on{background:var(--field);color:var(--tx);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.hbtn{display:flex;gap:8px;align-items:center;padding:9px 14px;border-radius:12px;background:var(--chip);font-weight:550}
+
+main{width:min(350px,92vw);margin-top:20px;padding-bottom:60px}
+.kicker{display:flex;gap:7px;justify-content:center;align-items:center;font-size:12.5px;margin-bottom:14px}
+h1{font-size:clamp(32px,6vw,48px);line-height:1.05;letter-spacing:-.035em;font-weight:600;text-align:center;margin:0 -40px 38px}
+label.l{display:flex;gap:7px;align-items:center;font-size:13px;font-weight:550;color:var(--mut);margin:0 0 6px 2px}
+.f{position:relative;margin-bottom:14px}
+.f input{width:100%;height:42px;border-radius:999px;border:1px solid var(--line);background:var(--field);padding:0 20px;transition:border-color .15s}
+.f input:focus{border-color:var(--tx)}
+.f input::placeholder{color:var(--dim)}
+.f .eye{position:absolute;right:12px;top:7px;width:28px;height:28px;display:grid;place-items:center;color:var(--tx);border-radius:50%}
+.hp{position:absolute;left:-9999px;opacity:0;height:0;width:0}
+.human{display:flex;align-items:center;gap:12px;height:70px;padding:0 16px;border-radius:14px;background:var(--chip);color:var(--mut);margin:20px 0 14px;cursor:pointer;position:relative}
+.human i{width:20px;height:20px;border-radius:6px;border:1px solid var(--line);background:var(--field);display:grid;place-items:center;color:var(--ok)}
+.human i svg{width:14px;height:14px;opacity:0}
+.human.on i svg{opacity:1}
+.sep{display:flex;align-items:center;gap:10px;color:var(--dim);font-size:12px;margin:14px 0}
+.sep::before,.sep::after{content:"";flex:1;border-top:1px dashed var(--line)}
+.go{width:100%;height:36px;border-radius:999px;background:var(--btn);color:var(--tx);font-weight:550;transition:background .15s,color .15s}
+.go.ready{background:var(--btn-on);color:var(--btn-ink)}
+.go:disabled{cursor:default}
+.alt{display:block;width:100%;margin-top:10px;height:36px;border-radius:999px;background:var(--chip);font-size:13px}
+.msg{min-height:20px;text-align:center;font-size:13px;color:var(--err);margin-top:12px}
+.msg.ok{color:var(--ok)}
+.done{text-align:center;color:var(--mut);line-height:1.6;margin-top:6px}
+.done b{color:var(--tx)}
+.hide{display:none!important}
+@media(max-width:640px){nav{display:none}}
+</style>
+</head>
+<body>
+<header>
+  <a class="logo" href="/"><svg viewBox="0 0 24 24"><path d="M5 20 12 4l7 16M8.5 14h7"/></svg>Axent</a>
+  <nav><a href="/"><svg viewBox="0 0 24 24"><path d="M3 11 12 3l9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Home</a></nav>
+  <div class="tools">
+    <div class="theme"><button id="tl" aria-label="Light"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button><button id="td" aria-label="Dark"><svg viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button></div>
+    <button class="hbtn" id="hsw"><svg viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg><span>Sign in</span></button>
+  </div>
+</header>
+
+<main>
+  <div class="kicker"><svg viewBox="0 0 24 24"><circle cx="9" cy="7" r="4"/><path d="M2 21v-2a4 4 0 0 1 4-4h6"/><path d="M19 15v6M16 18h6"/></svg><span id="kick">Create your account at Axent</span></div>
+  <h1 id="title">So, is this your first time here?</h1>
+
+  <div id="form">
+    <label class="l" for="u"><svg viewBox="0 0 24 24"><circle cx="9" cy="7" r="4"/><path d="M2 21v-2a4 4 0 0 1 4-4h6"/></svg>Username</label>
+    <div class="f"><input id="u" maxlength="16" placeholder="Your super cool username" autocomplete="username" spellcheck="false"></div>
+
+    <div id="emailRow">
+      <label class="l" for="e"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>Email</label>
+      <div class="f"><input id="e" type="email" maxlength="254" placeholder="Your super cool email" autocomplete="email" spellcheck="false"></div>
+    </div>
+
+    <label class="l" for="p"><svg viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Password</label>
+    <div class="f"><input id="p" type="password" maxlength="128" placeholder="••••••••••" autocomplete="new-password"><button class="eye" type="button" data-eye="p" aria-label="Show password"><svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
+
+    <div id="confRow">
+      <label class="l" for="c"><svg viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Confirm Password</label>
+      <div class="f"><input id="c" type="password" maxlength="128" placeholder="••••••••••" autocomplete="new-password"><button class="eye" type="button" data-eye="c" aria-label="Show password"><svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
+    </div>
+
+    <input class="hp" id="w" tabindex="-1" autocomplete="off" aria-hidden="true">
+
+    <div class="human" id="human" role="checkbox" aria-checked="false" tabindex="0"><i><svg viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg></i>Verify you are human</div>
+
+    <div class="sep">all that's left is to choose...</div>
+    <button class="go" id="go" disabled>Sign up</button>
+    <button class="alt" id="alt">Already have an account? Sign in.</button>
+    <div class="msg" id="msg"></div>
+  </div>
+
+  <div class="done hide" id="done"></div>
+</main>
+
+<script>
+const $=s=>document.querySelector(s);
+const ERR={
+  username:'Username: 3–16 characters, letters, digits and _',
+  email:'Enter a valid email',
+  password:'Password must be 8–128 characters',
+  mismatch:'Passwords do not match',
+  username_taken:'This username is already taken',
+  email_taken:'This email is already registered',
+  invalid:'Wrong username or password',
+  rate:'Too many attempts, wait a minute',
+  human:'Please tick the box and try again in a few seconds',
+  bot:'Request rejected',
+  net:'Cannot reach the server'
+};
+let mode=location.pathname==='/login'?'login':'register', ts='', human=false;
+
+/* тема */
+const root=document.documentElement;
+function setTheme(t){root.dataset.theme=t;try{localStorage.setItem('ax-theme',t)}catch(e){}$('#tl').classList.toggle('on',t==='light');$('#td').classList.toggle('on',t==='dark')}
+let saved=null;try{saved=localStorage.getItem('ax-theme')}catch(e){}
+setTheme(saved||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'));
+$('#tl').onclick=()=>setTheme('light');$('#td').onclick=()=>setTheme('dark');
+
+/* режим */
+function render(){
+  const reg=mode==='register';
+  $('#kick').textContent=reg?'Create your account at Axent':'Sign in to your Axent account';
+  $('#title').textContent=reg?'So, is this your first time here?':'Welcome back!';
+  $('#emailRow').classList.toggle('hide',!reg);
+  $('#confRow').classList.toggle('hide',!reg);
+  $('#human').classList.toggle('hide',!reg);
+  $('#go').textContent=reg?'Sign up':'Sign in';
+  $('#alt').textContent=reg?'Already have an account? Sign in.':"Don't have an account? Sign up.";
+  $('#hsw span').textContent=reg?'Sign in':'Sign up';
+  $('#u').placeholder=reg?'Your super cool username':'Username or email';
+  $('#u').maxLength=reg?16:254;
+  $('#p').autocomplete=reg?'new-password':'current-password';
+  $('#msg').textContent='';
+  history.replaceState(null,'',reg?'/register':'/login');
+  upd();
+}
+function flip(){mode=mode==='register'?'login':'register';$('#form').classList.remove('hide');$('#done').classList.add('hide');render()}
+$('#alt').onclick=flip;$('#hsw').onclick=flip;
+
+/* показать пароль */
+document.querySelectorAll('[data-eye]').forEach(b=>b.onclick=()=>{const i=$('#'+b.dataset.eye);i.type=i.type==='password'?'text':'password'});
+
+/* человек */
+const hm=$('#human');
+function toggleHuman(){human=!human;hm.classList.toggle('on',human);hm.setAttribute('aria-checked',human);upd()}
+hm.onclick=toggleHuman;hm.onkeydown=e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();toggleHuman()}};
+
+function upd(){
+  const reg=mode==='register';
+  const ok=reg?($('#u').value&&$('#e').value&&$('#p').value&&$('#c').value&&human):($('#u').value&&$('#p').value);
+  $('#go').disabled=!ok;$('#go').classList.toggle('ready',!!ok);
+}
+document.querySelectorAll('input').forEach(i=>i.addEventListener('input',upd));
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.tagName==='INPUT'&&!$('#go').disabled)submit()});
+
+async function getTs(){try{ts=(await (await fetch('/api/ts')).json()).ts}catch(e){}}
+async function post(url,data){
+  try{const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});return await r.json()}
+  catch(e){return{ok:false,error:'net'}}
+}
+function say(t,ok){const m=$('#msg');m.textContent=t;m.className='msg'+(ok?' ok':'')}
+function finish(html){$('#form').classList.add('hide');const d=$('#done');d.innerHTML=html;d.classList.remove('hide')}
+
+async function submit(){
+  const go=$('#go');go.disabled=true;say('');
+  if(mode==='register'){
+    const r=await post('/api/register',{username:$('#u').value.trim(),email:$('#e').value.trim(),password:$('#p').value,confirm:$('#c').value,human,ts,website:$('#w').value});
+    if(r.ok){
+      $('#title').textContent='You are in!';$('#kick').textContent='Account created';
+      return finish(`Account <b>${r.username.replace(/[<>&"]/g,'')}</b> is ready.<br>Open the Axent launcher and sign in with this username and your password.`);
+    }
+    if(r.error==='human'){await getTs()}
+    say(ERR[r.error]||'Something went wrong');upd();
+  }else{
+    const r=await post('/api/login',{username:$('#u').value.trim(),password:$('#p').value});
+    if(r.ok){
+      $('#title').textContent='Welcome back!';$('#kick').textContent='Credentials confirmed';
+      return finish(`Signed in as <b>${r.username.replace(/[<>&"]/g,'')}</b>.<br>Now just open the Axent launcher and sign in there.`);
+    }
+    say(ERR[r.error]||'Something went wrong');upd();
+  }
+}
+$('#go').onclick=submit;
+getTs();render();
+</script>
+</body>
+</html>
